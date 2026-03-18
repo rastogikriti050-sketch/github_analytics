@@ -81,4 +81,66 @@ User Input → Streamlit App → GitHub API → Data Processing → Visualizatio
 •⁠  ⁠Heatmap (Activity Patterns)
 
 ---
+## ⚙️ Installation & Setup
 
+### 1️⃣ Clone the repository
+
+bash
+git clone https://github.com/rastogikriti050-sketch/github_analytics.git
+cd github_analytics
+
+
+### 2️⃣ Install dependencies
+
+bash
+pip install -r requirements.txt
+
+
+### 3️⃣ Run the application
+
+bash
+streamlit run app.py
+
+
+---
+
+## 🐳 Docker Setup
+
+bash
+docker build -t github-analytics .
+docker run -p 8501:8501 github-analytics
+
+
+---
+
+## 🔄 CI/CD Pipeline
+
+* Automated build using GitHub Actions
+* Docker image creation on push
+* Continuous integration workflow
+
+---
+
+## 📸 Screenshots
+
+(Add your screenshots here)
+
+---
+
+## ⚠️ Limitations
+
+* GitHub API rate limits
+* Heatmap is based on repository creation (not actual commits)
+* Limited historical contribution data
+
+---
+
+## 🚀 Future Enhancements
+
+* Compare multiple GitHub users
+* Add authentication (GitHub token)
+* Real contribution heatmap using GraphQL API
+* Export analytics as PDF
+* Deploy on cloud (Render/AWS)
+
+---

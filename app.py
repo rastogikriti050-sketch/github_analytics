@@ -33,13 +33,15 @@ if username:
         if repos_data:
             df = pd.DataFrame(repos_data)
 
-            # --- CALCULATIONS ---
+            # --- PREPROCESS ---
+            df['created_at'] = pd.to_datetime(df['created_at'])
+
+            # --- KEY INSIGHTS ---
             total_stars = df['stargazers_count'].sum()
             total_forks = df['forks_count'].sum()
 
             df_sorted = df.sort_values(by='stargazers_count', ascending=False).head(10)
 
-            # --- KEY INSIGHTS ---
             st.markdown("## ⭐ Key Insights")
 
             col4, col5, col6 = st.columns(3)
@@ -61,7 +63,7 @@ if username:
             fig1 = px.pie(lang_count, names='Language', values='Count')
             st.plotly_chart(fig1, use_container_width=True)
 
-            # --- PERFORMANCE CHARTS ---
+            # --- PERFORMANCE ---
             st.markdown("## 📊 Repository Performance")
 
             col7, col8 = st.columns(2)
@@ -70,8 +72,7 @@ if username:
                 df_sorted,
                 x='name',
                 y='stargazers_count',
-                title="⭐ Stars",
-                labels={'name': 'Repository', 'stargazers_count': 'Stars'}
+                title="⭐ Stars"
             )
             col7.plotly_chart(fig2, use_container_width=True)
 
@@ -86,7 +87,6 @@ if username:
             # --- TIMELINE ---
             st.markdown("## 📈 Activity Timeline")
 
-            df['created_at'] = pd.to_datetime(df['created_at'])
             timeline = df.groupby(df['created_at'].dt.year).size().reset_index(name='repos')
 
             fig4 = px.line(
@@ -98,24 +98,24 @@ if username:
             )
             st.plotly_chart(fig4, use_container_width=True)
 
-# --- HEATMAP ---
-st.markdown("## 🔥 Activity Heatmap")
+            # --- HEATMAP ---
+            st.markdown("## 🔥 Activity Heatmap")
 
-df['created_at'] = pd.to_datetime(df['created_at'])
+            df['day'] = df['created_at'].dt.day
+            df['month'] = df['created_at'].dt.month
 
-# Create day and month columns
-df['day'] = df['created_at'].dt.day
-df['month'] = df['created_at'].dt.month
+            heatmap_data = df.groupby(['month', 'day']).size().reset_index(name='count')
 
-heatmap_data = df.groupby(['month', 'day']).size().reset_index(name='count')
+            fig_heatmap = px.density_heatmap(
+                heatmap_data,
+                x='day',
+                y='month',
+                z='count',
+                color_continuous_scale='greens',
+                title="Repository Activity Heatmap"
+            )
 
-fig_heatmap = px.density_heatmap(
-    heatmap_data,
-    x='day',
-    y='month',
-    z='count',
-    color_continuous_scale='greens',
-    title="Repository Activity Heatmap"
-)
+            st.plotly_chart(fig_heatmap, use_container_width=True)
 
-st.plotly_chart(fig_heatmap, use_container_width=True)
+        else:
+            st.warning("No repositories found for this user.")

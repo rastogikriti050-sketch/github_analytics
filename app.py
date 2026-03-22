@@ -3,53 +3,26 @@ import requests
 import pandas as pd
 import plotly.express as px
 
-# --- PAGE CONFIG ---
-st.set_page_config(
-    page_title="GitHub Analytics Dashboard",
-    page_icon="🚀",
-    layout="wide"
-)
+st.set_page_config(page_title="GitHub Analytics Dashboard", page_icon="🚀", layout="wide")
 
-# --- CUSTOM CSS ---
-st.markdown("""
-<style>
-.main {
-    background-color: #0f172a;
-    color: white;
-}
-.stTextInput > div > div > input {
-    background-color: #1e293b;
-    color: white;
-    border-radius: 10px;
-}
-.block-container {
-    padding-top: 2rem;
-}
-</style>
-""", unsafe_allow_html=True)
+st.title("🚀 GitHub User Analytics Dashboard")
 
-# --- SIDEBAR ---
-st.sidebar.title("⚙️ Controls")
-username = st.sidebar.text_input("Enter GitHub Username")
-
-# --- HEADER ---
-st.markdown("<h1 style='text-align: center;'>🚀 GitHub Analytics Dashboard</h1>", unsafe_allow_html=True)
-st.markdown("<hr>", unsafe_allow_html=True)
+username = st.text_input("Enter GitHub Username")
 
 if username:
     user_url = f"https://api.github.com/users/{username}"
     repos_url = f"https://api.github.com/users/{username}/repos"
 
-    with st.spinner("Fetching data..."):
-        user_res = requests.get(user_url)
-        repos_res = requests.get(repos_url)
+    user_res = requests.get(user_url)
+    repos_res = requests.get(repos_url)
 
     if user_res.status_code != 200:
-        st.error("❌ User not found!")
+        st.error("User not found!")
     else:
         user_data = user_res.json()
         repos_data = repos_res.json()
 
+        # --- USER INFO ---
         st.markdown("## 👤 User Overview")
 
         col1, col2, col3 = st.columns(3)
@@ -73,7 +46,11 @@ if username:
 
             col4, col5, col6 = st.columns(3)
 
-            col4.metric("🔥 Top Repo", df_sorted.iloc[0]['name'] if not df_sorted.empty else "N/A")
+            if not df_sorted.empty:
+                col4.metric("🔥 Top Repo", df_sorted.iloc[0]['name'])
+            else:
+                col4.metric("🔥 Top Repo", "N/A")
+
             col5.metric("⭐ Total Stars", total_stars)
             col6.metric("🍴 Total Forks", total_forks)
 
@@ -83,13 +60,7 @@ if username:
             lang_count = df['language'].value_counts().dropna().reset_index()
             lang_count.columns = ['Language', 'Count']
 
-            fig1 = px.pie(
-                lang_count,
-                names='Language',
-                values='Count',
-                hole=0.4
-            )
-            fig1.update_layout(template="plotly_dark")
+            fig1 = px.pie(lang_count, names='Language', values='Count')
             st.plotly_chart(fig1, use_container_width=True)
 
             # --- PERFORMANCE ---
@@ -97,24 +68,10 @@ if username:
 
             col7, col8 = st.columns(2)
 
-            fig2 = px.bar(
-                df_sorted,
-                x='name',
-                y='stargazers_count',
-                title="⭐ Stars"
-            )
-            fig2.update_layout(template="plotly_dark")
-
+            fig2 = px.bar(df_sorted, x='name', y='stargazers_count', title="⭐ Stars")
             col7.plotly_chart(fig2, use_container_width=True)
 
-            fig3 = px.bar(
-                df_sorted,
-                x='name',
-                y='forks_count',
-                title="🍴 Forks"
-            )
-            fig3.update_layout(template="plotly_dark")
-
+            fig3 = px.bar(df_sorted, x='name', y='forks_count', title="🍴 Forks")
             col8.plotly_chart(fig3, use_container_width=True)
 
             # --- TIMELINE ---
@@ -127,10 +84,8 @@ if username:
                 x='created_at',
                 y='repos',
                 markers=True,
-                title="Repositories Over Time"
+                title="Repositories Created Over Time"
             )
-            fig4.update_layout(template="plotly_dark")
-
             st.plotly_chart(fig4, use_container_width=True)
 
             # --- HEATMAP ---
@@ -149,8 +104,39 @@ if username:
                 color_continuous_scale='greens',
                 title="Repository Activity Heatmap"
             )
-
             st.plotly_chart(fig_heatmap, use_container_width=True)
+
+            # --- ACTIVITY INSIGHTS ---
+            st.markdown("## 🧠 Activity Insights")
+
+            df['day_name'] = df['created_at'].dt.day_name()
+
+            # Most active day
+            most_active_day = df['day_name'].value_counts().idxmax()
+            st.metric("📅 Most Active Day", most_active_day)
+
+            # Weekend vs weekday
+            weekend_days = ['Saturday', 'Sunday']
+
+            weekend_count = df[df['day_name'].isin(weekend_days)].shape[0]
+            weekday_count = df[~df['day_name'].isin(weekend_days)].shape[0]
+
+            if weekend_count > weekday_count:
+                st.success("🔥 User is more active on weekends")
+            else:
+                st.info("📅 User is more active on weekdays")
+
+            # Day-wise activity chart
+            activity = df['day_name'].value_counts().reset_index()
+            activity.columns = ['Day', 'Count']
+
+            fig_activity = px.bar(
+                activity,
+                x='Day',
+                y='Count',
+                title="Activity by Day of Week"
+            )
+            st.plotly_chart(fig_activity, use_container_width=True)
 
         else:
             st.warning("No repositories found for this user.")

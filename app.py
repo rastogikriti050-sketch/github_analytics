@@ -3,9 +3,9 @@ import requests
 import pandas as pd
 import plotly.express as px
 
-st.set_page_config(page_title="GitHub Analytics Dashboard", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="GitHub Analytics Dashboard", layout="wide")
 
-st.title("🚀 GitHub User Analytics Dashboard")
+st.title("GitHub User Analytics Dashboard 🚀")
 
 username = st.text_input("Enter GitHub Username")
 
@@ -17,18 +17,18 @@ if username:
     repos_res = requests.get(repos_url)
 
     if user_res.status_code != 200:
-        st.error("User not found!")
+        st.error("User not found")
     else:
         user_data = user_res.json()
         repos_data = repos_res.json()
 
         # --- USER INFO ---
-        st.markdown("## 👤 User Overview")
+        st.markdown("## User Overview 👤")
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("📦 Repos", user_data['public_repos'])
-        col2.metric("👥 Followers", user_data['followers'])
-        col3.metric("➡️ Following", user_data['following'])
+        col1.metric("Repos", user_data['public_repos'])
+        col2.metric("Followers", user_data['followers'])
+        col3.metric("Following", user_data['following'])
 
         if repos_data:
             df = pd.DataFrame(repos_data)
@@ -42,20 +42,20 @@ if username:
 
             df_sorted = df.sort_values(by='stargazers_count', ascending=False).head(10)
 
-            st.markdown("## ⭐ Key Insights")
+            st.markdown("## Key Insights ⭐")
 
             col4, col5, col6 = st.columns(3)
 
             if not df_sorted.empty:
-                col4.metric("🔥 Top Repo", df_sorted.iloc[0]['name'])
+                col4.metric("Top Repository", df_sorted.iloc[0]['name'])
             else:
-                col4.metric("🔥 Top Repo", "N/A")
+                col4.metric("Top Repository", "N/A")
 
-            col5.metric("⭐ Total Stars", total_stars)
-            col6.metric("🍴 Total Forks", total_forks)
+            col5.metric("Total Stars", total_stars)
+            col6.metric("Total Forks", total_forks)
 
             # --- LANGUAGE DISTRIBUTION ---
-            st.markdown("## 🧠 Language Distribution")
+            st.markdown("## Language Distribution 🧠")
 
             lang_count = df['language'].value_counts().dropna().reset_index()
             lang_count.columns = ['Language', 'Count']
@@ -64,18 +64,18 @@ if username:
             st.plotly_chart(fig1, use_container_width=True)
 
             # --- PERFORMANCE ---
-            st.markdown("## 📊 Repository Performance")
+            st.markdown("## Repository Performance 📊")
 
             col7, col8 = st.columns(2)
 
-            fig2 = px.bar(df_sorted, x='name', y='stargazers_count', title="⭐ Stars")
+            fig2 = px.bar(df_sorted, x='name', y='stargazers_count', title="Stars")
             col7.plotly_chart(fig2, use_container_width=True)
 
-            fig3 = px.bar(df_sorted, x='name', y='forks_count', title="🍴 Forks")
+            fig3 = px.bar(df_sorted, x='name', y='forks_count', title="Forks")
             col8.plotly_chart(fig3, use_container_width=True)
 
             # --- TIMELINE ---
-            st.markdown("## 📈 Activity Timeline")
+            st.markdown("## Activity Timeline 📈")
 
             timeline = df.groupby(df['created_at'].dt.year).size().reset_index(name='repos')
 
@@ -89,7 +89,7 @@ if username:
             st.plotly_chart(fig4, use_container_width=True)
 
             # --- HEATMAP ---
-            st.markdown("## 🔥 Activity Heatmap")
+            st.markdown("## Activity Heatmap 🔥")
 
             df['day'] = df['created_at'].dt.day
             df['month'] = df['created_at'].dt.month
@@ -107,26 +107,23 @@ if username:
             st.plotly_chart(fig_heatmap, use_container_width=True)
 
             # --- ACTIVITY INSIGHTS ---
-            st.markdown("## 🧠 Activity Insights")
+            st.markdown("## Activity Insights 🧠")
 
             df['day_name'] = df['created_at'].dt.day_name()
 
-            # Most active day
             most_active_day = df['day_name'].value_counts().idxmax()
-            st.metric("📅 Most Active Day", most_active_day)
+            st.metric("Most Active Day", most_active_day)
 
-            # Weekend vs weekday
             weekend_days = ['Saturday', 'Sunday']
 
             weekend_count = df[df['day_name'].isin(weekend_days)].shape[0]
             weekday_count = df[~df['day_name'].isin(weekend_days)].shape[0]
 
             if weekend_count > weekday_count:
-                st.success("🔥 User is more active on weekends")
+                st.success("User is more active on weekends")
             else:
-                st.info("📅 User is more active on weekdays")
+                st.info("User is more active on weekdays")
 
-            # Day-wise activity chart
             activity = df['day_name'].value_counts().reset_index()
             activity.columns = ['Day', 'Count']
 
@@ -139,4 +136,4 @@ if username:
             st.plotly_chart(fig_activity, use_container_width=True)
 
         else:
-            st.warning("No repositories found for this user.")
+            st.warning("No repositories found for this user")
